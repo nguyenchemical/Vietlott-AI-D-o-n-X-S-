@@ -43,9 +43,15 @@
   </div>
 
   <div class="product">
-    <h2>Dự đoán Jackpot bằng AI</h2>
-    <button onclick="predictJackpot()">Dự đoán Jackpot</button>
-    <div id="jackpot-result"></div>
+    <h2>Dự đoán Jackpot Mega 6/45</h2>
+    <button onclick="predictJackpotMega()">Dự đoán Mega 6/45</button>
+    <div id="jackpot-mega"></div>
+  </div>
+
+  <div class="product">
+    <h2>Dự đoán Jackpot Power 6/55</h2>
+    <button onclick="predictJackpotPower()">Dự đoán Power 6/55</button>
+    <div id="jackpot-power"></div>
   </div>
 
   <script>
@@ -105,15 +111,44 @@
     setInterval(fetchData, 60000);
     fetchData();
 
-    async function trainAIWithHistory() {
-      // Dữ liệu giả định, thay bằng dữ liệu lịch sử thật
-      const xs = tf.tensor2d([[1],[2],[3],[4],[5],[6]], [6,1]);
-      const ys = tf.tensor2d([[12],[24],[36],[48],[60],[72]], [6,1]);
+    async function trainJackpotModel(maxNumber) {
+      // Dữ liệu giả định, bạn thay bằng dữ liệu lịch sử thật
+      const xs = tf.tensor2d([[1],[2],[3],[4],[5],[6],[7],[8],[9],[10]], [10,1]);
+      const ys = tf.tensor2d([[0.1],[0.2],[0.3],[0.4],[0.5],[0.6],[0.7],[0.8],[0.9],[1.0]], [10,1]);
       const model = tf.sequential();
-      model.add(tf.layers.dense({units: 1, inputShape: [1]}));
-      model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
-      await model.fit(xs, ys, {epochs: 200});
+      model.add(tf.layers.dense({units: 16, activation:'relu', inputShape:[1]}));
+      model.add(tf.layers.dense({units: 1, activation:'sigmoid'}));
+      model.compile({loss:'meanSquaredError', optimizer:'adam'});
+      await model.fit(xs, ys, {epochs:200});
       return model;
+    }
+
+    async function predictJackpotMega() {
+      const model = await trainJackpotModel(45);
+      let scores = [];
+      for (let i=1; i<=45; i++) {
+        const out = model.predict(tf.tensor2d([i],[1,1]));
+        const val = (await out.data())[0];
+        scores.push({num:i,score:val});
+      }
+      scores.sort((a,b)=>b.score-a.score);
+      const lucky = scores.slice(0,6).map(s=>s.num).sort((a,b)=>a-b);
+      document.getElementById("jackpot-mega").innerHTML =
+        `<div class="numbers">Mega 6/45: ${lucky.join(" - ")}</div>`;
+    }
+
+    async function predictJackpotPower() {
+      const model = await trainJackpotModel(55);
+      let scores = [];
+      for (let i=1; i<=55; i++) {
+        const out = model.predict(tf.tensor2d([i],[1,1]));
+        const val = (await out.data())[0];
+        scores.push({num:i,score:val});
+      }
+      scores.sort((a,b)=>b.score-a.score);
+      const lucky = scores.slice(0,6).map(s=>s.num).sort((a,b)=>a-b);
+      document.getElementById("jackpot-power").innerHTML =
+        `<div class="numbers">Power 6/55: ${lucky.join(" - ")}</div>`;
     }
 
     function setupBirthdaySelectors() {
@@ -126,43 +161,4 @@
     }
 
     async function predictByBirthday() {
-      const day = parseInt(document.getElementById("day").value);
-      const month = parseInt(document.getElementById("month").value);
-      const year = parseInt(document.getElementById("year").value);
-      const model = await trainAIWithHistory();
-      const input = tf.tensor2d([day + month + (year % 100)], [1,1]);
-      const output = model.predict(input);
-      const val = (await output.data())[0];
-      const luckyNumbers = generateNumbers(6, 45);
-      luckyNumbers[0] = Math.round(val % 45) + 1;
-      document.getElementById("birthday-result").innerHTML =
-        `<div class="numbers">Số may mắn: ${luckyNumbers.join(" - ")}</div>`;
-    }
-
-    async function predictJackpot() {
-      const model = await trainAIWithHistory();
-      const input = tf.tensor2d([7], [1,1]); // giả định kỳ quay tiếp theo
-      const output = model.predict(input);
-      const val = (await output.data())[0];
-      document.getElementById("jackpot-result").innerHTML =
-        `<div class="numbers">AI dự đoán Jackpot (demo): ${Math.round(val)}</div>`;
-    }
-
-    setupBirthdaySelectors();
-
-    // Light/Dark mode toggle
-    const modeToggle = document.getElementById("modeToggle");
-    modeToggle.addEventListener("click", () => {
-      if (document.body.classList.contains("dark")) {
-        document.body.classList.remove("dark");
-        document.body.classList.add("light");
-        modeToggle.textContent = "Chuyển sang Dark Mode";
-      } else {
-        document.body.classList.remove("light");
-        document.body.classList.add("dark");
-        modeToggle.textContent = "Chuyển sang Light Mode";
-      }
-    });
-  </script>
-</body>
-</html>
+      const day = parse
