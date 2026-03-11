@@ -31,7 +31,6 @@
             color: white; margin: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
             font-size: 14px;
         }
-        /* Style riêng cho dòng Max 3D để hiển thị số đẹp hơn */
         .max3d-ball {
             width: 55px; height: 55px; border-radius: 50%;
             background: radial-gradient(circle at 30% 30%, #4facfe, #00f2fe);
@@ -54,7 +53,7 @@
                 </div>
                 <h1 class="font-bold text-xl tracking-tight uppercase italic">Vietlott <span class="text-red-600">AI</span></h1>
             </div>
-            <button @click="darkMode = !darkMode" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+            <button @click="toggleDarkMode()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
                 <i :data-lucide="darkMode ? 'sun' : 'moon'" class="w-6 h-6 text-yellow-500"></i>
             </button>
         </div>
@@ -65,7 +64,7 @@
             <div class="flex overflow-x-auto py-4 px-4 gap-3 no-scrollbar">
                 <template x-for="game in games" :key="game.id">
                     <button 
-                        @click="activeGame = game.id; currentPrediction = []; isJackpot = false;"
+                        @click="selectGame(game.id)"
                         :class="activeGame === game.id ? 'bg-red-600 text-white shadow-lg' : 'bg-white dark:bg-gray-800 text-gray-500'"
                         class="whitespace-nowrap px-4 py-2 rounded-full shadow-sm font-medium transition-all border dark:border-gray-700"
                         x-text="game.name">
@@ -163,25 +162,25 @@
             <div class="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl border border-gray-100 dark:border-gray-700">
                 <h2 class="text-xl font-bold uppercase" x-text="activeTab === 'history' ? 'Lịch sử' : (activeTab === 'stats' ? 'Thống kê' : 'Cá nhân')"></h2>
                 <p class="mt-4 text-gray-400 italic">Dữ liệu đang được đồng bộ...</p>
-                <button @click="activeTab = 'home'" class="mt-6 text-red-600 font-bold underline uppercase text-xs">Quay lại trang chủ</button>
+                <button @click="switchTab('home')" class="mt-6 text-red-600 font-bold underline uppercase text-xs">Quay lại trang chủ</button>
             </div>
         </div>
     </main>
 
     <nav class="fixed bottom-0 w-full max-w-md left-1/2 -translate-x-1/2 bg-white/95 dark:bg-gray-800/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-700 px-6 pt-3 flex justify-between items-center rounded-t-3xl shadow-2xl z-50">
-        <div @click="activeTab = 'home'" :class="activeTab === 'home' ? 'text-red-600' : 'text-gray-400'" class="flex flex-col items-center cursor-pointer transition-all">
+        <div @click="switchTab('home')" :class="activeTab === 'home' ? 'text-red-600' : 'text-gray-400'" class="flex flex-col items-center cursor-pointer transition-all">
             <i data-lucide="home" class="w-6 h-6"></i>
             <span class="text-[10px] mt-1 font-bold">TRANG CHỦ</span>
         </div>
-        <div @click="activeTab = 'history'" :class="activeTab === 'history' ? 'text-red-600' : 'text-gray-400'" class="flex flex-col items-center cursor-pointer transition-all">
+        <div @click="switchTab('history')" :class="activeTab === 'history' ? 'text-red-600' : 'text-gray-400'" class="flex flex-col items-center cursor-pointer transition-all">
             <i data-lucide="history" class="w-6 h-6"></i>
             <span class="text-[10px] mt-1 font-bold">LỊCH SỬ</span>
         </div>
-        <div @click="activeTab = 'stats'" :class="activeTab === 'stats' ? 'text-red-600' : 'text-gray-400'" class="flex flex-col items-center cursor-pointer transition-all">
+        <div @click="switchTab('stats')" :class="activeTab === 'stats' ? 'text-red-600' : 'text-gray-400'" class="flex flex-col items-center cursor-pointer transition-all">
             <i data-lucide="trending-up" class="w-6 h-6"></i>
             <span class="text-[10px] mt-1 font-bold">THỐNG KÊ</span>
         </div>
-        <div @click="activeTab = 'profile'" :class="activeTab === 'profile' ? 'text-red-600' : 'text-gray-400'" class="flex flex-col items-center cursor-pointer transition-all">
+        <div @click="switchTab('profile')" :class="activeTab === 'profile' ? 'text-red-600' : 'text-gray-400'" class="flex flex-col items-center cursor-pointer transition-all">
             <i data-lucide="user" class="w-6 h-6"></i>
             <span class="text-[10px] mt-1 font-bold">CÁ NHÂN</span>
         </div>
@@ -197,23 +196,61 @@
                 isJackpot: false,
                 currentPrediction: [],
                 dob: { day: 1, month: 1, year: 2026 },
-                fullUpdateDate: new Date().toLocaleTimeString('vi-VN') + ' - ' + new Date().toLocaleDateString('vi-VN'),
+                fullUpdateDate: '',
+                audioCtx: null,
 
                 startApp() {
-                    lucide.createIcons();
                     this.updateTime();
-                    setInterval(() => { this.updateTime(); }, 1000);
+                    setInterval(() => this.updateTime(), 1000);
+                    lucide.createIcons();
+                },
+
+                // HÀM TẠO ÂM THANH BEEP
+                playTone(freq, type, duration) {
+                    try {
+                        if (!this.audioCtx) this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        const osc = this.audioCtx.createOscillator();
+                        const gain = this.audioCtx.createGain();
+                        osc.type = type;
+                        osc.frequency.setValueAtTime(freq, this.audioCtx.currentTime);
+                        gain.gain.setValueAtTime(0.1, this.audioCtx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + duration);
+                        osc.connect(gain);
+                        gain.connect(this.audioCtx.destination);
+                        osc.start();
+                        osc.stop(this.audioCtx.currentTime + duration);
+                    } catch (e) { console.log("Audio blocked"); }
+                },
+
+                playClick() { this.playTone(600, 'sine', 0.1); },
+                playSuccess() { 
+                    this.playTone(800, 'sine', 0.2);
+                    setTimeout(() => this.playTone(1200, 'sine', 0.3), 150);
+                },
+
+                toggleDarkMode() {
+                    this.playClick();
+                    this.darkMode = !this.darkMode;
+                },
+
+                switchTab(tab) {
+                    this.playClick();
+                    this.activeTab = tab;
+                },
+
+                selectGame(id) {
+                    this.playClick();
+                    this.activeGame = id;
+                    this.currentPrediction = [];
+                    this.isJackpot = false;
                 },
 
                 updateTime() {
                     const now = new Date();
-                    const time = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                    const date = now.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                    this.fullUpdateDate = `${time} - ${date}`;
+                    this.fullUpdateDate = now.toLocaleTimeString('vi-VN') + ' - ' + now.toLocaleDateString('vi-VN');
                 },
 
                 getCurrentGame() { return this.games.find(g => g.id === this.activeGame); },
-                
                 isMax3DSeries() { return ['max3d', 'max3dp', 'max3dpro'].includes(this.activeGame); },
 
                 games: [
@@ -236,23 +273,20 @@
                 },
 
                 generatePrediction(jackpotMode = false, isBirthday = false) {
+                    this.playClick();
                     this.loading = true; 
                     this.currentPrediction = []; 
                     this.isJackpot = jackpotMode;
                     const game = this.getCurrentGame();
                     
-                    // Logic AI Thuật chuyên sâu cho Max 3D
                     setTimeout(() => {
                         let results = [];
-                        
                         if (this.isMax3DSeries()) {
-                            // Quy tắc 3 chữ số Vietlott (000 - 999)
                             for(let i = 0; i < game.count; i++) {
                                 let num = Math.floor(Math.random() * 1000);
                                 results.push(num.toString().padStart(3, '0'));
                             }
                         } else {
-                            // Quy tắc dòng Mega/Power/Keno
                             let nums = new Set();
                             while(nums.size < game.count) {
                                 let n = Math.floor(Math.random() * game.max) + 1;
@@ -263,6 +297,7 @@
                         
                         this.currentPrediction = results;
                         this.loading = false;
+                        this.playSuccess();
                         if(jackpotMode || isBirthday) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
                     }, 1200);
                 }
