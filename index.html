@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Vietlott AI Pro - All-in-One</title>
+    <title>Vietlott AI Pro</title>
+    
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.0/umd/lucide.min.js"></script>
@@ -13,97 +19,100 @@
     <style>
         [x-cloak] { display: none !important; }
         html, body { height: 100%; overflow: hidden; position: fixed; width: 100%; font-family: 'Lexend', sans-serif; background: #0f172a; color: #f8fafc; }
-        main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 60px; }
+        main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 80px; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        
-        .led-sync { width: 10px; height: 10px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 10px #22c55e; animation: blink 1.5s infinite; }
+        .led-sync { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 10px #22c55e; animation: blink 1.5s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-
         .ball {
             display: inline-flex; align-items: center; justify-content: center;
-            width: 38px; height: 38px; border-radius: 50%; font-weight: 800;
-            color: white; margin: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); font-size: 14px;
-            animation: pop 0.3s ease-out;
+            width: 42px; height: 42px; border-radius: 50%; font-weight: 800;
+            color: white; margin: 4px; box-shadow: inset -3px -3px 8px rgba(0,0,0,0.4), 0 4px 10px rgba(0,0,0,0.3);
+            font-size: 16px; animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
-        @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
-        
+        @keyframes pop { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         .bg-mega { background: radial-gradient(circle at 30% 30%, #ff4d4d, #b30000); }
         .bg-power { background: radial-gradient(circle at 30% 30%, #ff8c00, #cc7000); }
         .bg-special { background: radial-gradient(circle at 30% 30%, #ffd700, #b8860b); color: #000; border: 2px solid #ef4444; }
         .bg-blue { background: radial-gradient(circle at 30% 30%, #4facfe, #00f2fe); }
-
-        .jackpot-card { background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); border: 1px solid rgba(255,255,255,0.1); }
         .text-gold { 
             background: linear-gradient(to bottom, #fff5b1, #ffd700, #ff9500); 
             -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
             font-family: 'Space Grotesk', sans-serif; font-weight: 900;
-            letter-spacing: -0.05em;
         }
-        .meter-fill { transition: width 2s cubic-bezier(0.4, 0, 0.2, 1); }
     </style>
 </head>
-<body class="flex flex-col" x-init="startApp()">
+<body class="flex flex-col" x-init="initApp()">
 
-    <header class="flex-none px-4 h-14 flex items-center justify-between border-b border-white/5 bg-slate-900/80">
+    <header class="flex-none px-4 h-14 flex items-center justify-between border-b border-white/5 bg-slate-900/80 backdrop-blur-md z-50">
         <div class="flex items-center gap-2">
-            <div class="w-8 h-8 bg-red-600 rounded flex items-center justify-center font-black italic">V</div>
+            <div class="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center font-black italic shadow-lg shadow-red-600/20">V</div>
             <h1 class="font-black text-lg italic uppercase tracking-tighter">Vietlott <span class="text-red-500">AI</span></h1>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
             <span class="led-sync"></span>
-            <span class="text-[10px] font-bold opacity-50 uppercase">Live Sync</span>
+            <span class="text-[10px] font-black opacity-80 uppercase tracking-widest">Live Sync</span>
         </div>
     </header>
 
     <main class="no-scrollbar p-4">
-        <div class="flex overflow-x-auto gap-2 mb-4 no-scrollbar">
+        <div class="flex overflow-x-auto gap-2 mb-6 no-scrollbar py-1">
             <template x-for="game in allGames" :key="game.id">
                 <button @click="selectGame(game.id)" 
-                    :class="activeGame === game.id ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' : 'bg-slate-800 text-white/40'"
-                    class="whitespace-nowrap px-5 py-2.5 rounded-full text-[10px] font-black uppercase transition-all" 
+                    :class="activeGame === game.id ? 'bg-red-600 text-white shadow-xl shadow-red-600/30' : 'bg-slate-800/50 text-white/40 border border-white/5'"
+                    class="whitespace-nowrap px-6 py-3 rounded-2xl text-[11px] font-black uppercase transition-all duration-300 active:scale-95" 
                     x-text="game.name"></button>
             </template>
         </div>
 
-        <div class="mb-4">
-            <div class="jackpot-card rounded-[2.5rem] p-6 relative overflow-hidden">
-                <div class="flex justify-between items-center mb-1">
-                    <span class="text-[9px] font-black uppercase text-white/40 tracking-[0.15em]" x-text="'Jackpot ' + currentG().name"></span>
-                    <div class="flex items-center gap-1.5 bg-red-500/10 px-2 py-1 rounded-full">
-                        <span class="text-[10px] font-black text-red-500" x-text="Math.round(jackpotRate) + '%'"></span>
-                        <span class="animate-pulse text-[10px]">🚨</span>
+        <div class="mb-6">
+            <div class="bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-900 rounded-[2.5rem] p-7 border border-white/10 relative overflow-hidden shadow-2xl">
+                <div class="absolute top-0 right-0 p-8 opacity-10"><i data-lucide="trophy" class="w-20 h-20"></i></div>
+                
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-[10px] font-black uppercase text-white/40 tracking-[0.2em]" x-text="'Jackpot ' + currentG().name"></span>
+                    <div class="flex items-center gap-2 bg-red-500/10 border border-red-500/20 px-3 py-1 rounded-full">
+                        <span class="text-[11px] font-black text-red-500" x-text="jackpotRate + '%'"></span>
+                        <span class="animate-pulse">🚨</span>
                     </div>
                 </div>
-                <div class="text-4xl text-gold mb-1" x-text="formattedJackpot"></div>
-                <div class="text-[10px] text-white/30 font-bold uppercase tracking-wider" x-text="'Kỳ #'+currentKy+' • ' + currentDayStr"></div>
+
+                <div class="text-4xl text-gold mb-2 tracking-tighter" x-text="formattedJackpot"></div>
+                <div class="text-[11px] text-white/40 font-bold uppercase tracking-widest flex items-center gap-2">
+                    <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+                    <span x-text="'Kỳ #'+currentKy+' • ' + currentDayStr"></span>
+                </div>
                 
-                <div class="mt-5 h-2 w-full bg-black/20 rounded-full overflow-hidden border border-white/5">
-                    <div class="h-full bg-gradient-to-r from-green-500 via-yellow-400 to-red-600 meter-fill" :style="'width: '+jackpotRate+'%'"></div>
+                <div class="mt-6 h-2.5 w-full bg-black/40 rounded-full overflow-hidden border border-white/5 p-0.5">
+                    <div class="h-full bg-gradient-to-r from-green-500 via-yellow-400 to-red-600 rounded-full transition-all duration-1000" :style="'width: '+jackpotRate+'%'"></div>
                 </div>
 
-                <div class="flex gap-1.5 mt-5">
+                <div class="flex gap-2 mt-6">
                     <template x-for="day in ['T2','T3','T4','T5','T6','T7','CN']">
                         <div :class="currentG().schedule.includes(day) ? 'bg-red-600 text-white border-transparent' : 'text-white/10 border-white/5'"
-                             class="flex-1 text-[8px] py-2 rounded-lg text-center border font-black" x-text="day"></div>
+                             class="flex-1 text-[9px] py-2.5 rounded-xl text-center border font-black transition-colors" x-text="day"></div>
                     </template>
                 </div>
             </div>
         </div>
 
-        <div class="mb-4">
-            <div class="bg-slate-800/40 rounded-[2.5rem] p-6 border border-white/5 text-center shadow-2xl backdrop-blur-sm">
-                <div class="text-[10px] font-black uppercase text-white/30 mb-5 tracking-[0.2em]">Thuật toán: <span class="text-red-500" x-text="currentG().name"></span></div>
+        <div class="mb-6">
+            <div class="bg-slate-800/40 rounded-[2.5rem] p-8 border border-white/5 text-center shadow-inner backdrop-blur-sm">
+                <div class="text-[10px] font-black uppercase text-white/20 mb-6 tracking-[0.3em] flex items-center justify-center gap-2">
+                    <div class="h-px w-8 bg-white/10"></div>
+                    Thuật toán AI <span class="text-red-500" x-text="currentG().name"></span>
+                    <div class="h-px w-8 bg-white/10"></div>
+                </div>
                 
-                <div class="flex flex-wrap justify-center min-h-[60px] items-center mb-6">
+                <div class="flex flex-wrap justify-center min-h-[80px] items-center mb-8">
                     <template x-if="loading">
-                        <div class="flex gap-2 animate-bounce">
-                            <div class="w-2 h-2 bg-red-500 rounded-full"></div>
-                            <div class="w-2 h-2 bg-orange-500 rounded-full"></div>
-                            <div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                        <div class="flex gap-3">
+                            <div class="w-3 h-3 bg-red-500 rounded-full animate-bounce"></div>
+                            <div class="w-3 h-3 bg-orange-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                            <div class="w-3 h-3 bg-yellow-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
                         </div>
                     </template>
                     <template x-if="!loading && results.length > 0">
-                        <div class="flex flex-wrap justify-center">
+                        <div class="flex flex-wrap justify-center gap-1">
                             <template x-for="(num, idx) in results" :key="idx">
                                 <span :class="getBallColor(idx)" class="ball" x-text="num"></span>
                             </template>
@@ -112,63 +121,60 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
-                    <button @click="runAI(false)" class="bg-orange-600 h-14 rounded-2xl font-black uppercase text-[10px] text-white shadow-lg active:scale-95 transition-all">Phân Tích AI</button>
-                    <button @click="runAI(true)" class="bg-yellow-600 h-14 rounded-2xl font-black uppercase text-[10px] text-white shadow-lg active:scale-95 transition-all">Soi Jackpot</button>
+                    <button @click="runAI(false)" class="bg-gradient-to-b from-orange-500 to-orange-700 h-16 rounded-2xl font-black uppercase text-[11px] text-white shadow-lg active:scale-95 transition-all">Phân Tích AI</button>
+                    <button @click="runAI(true)" class="bg-gradient-to-b from-yellow-500 to-yellow-700 h-16 rounded-2xl font-black uppercase text-[11px] text-white shadow-lg active:scale-95 transition-all">Soi Jackpot</button>
                 </div>
             </div>
         </div>
 
-        <div class="mb-6">
-            <div class="bg-indigo-600 p-6 rounded-[2.5rem] shadow-xl relative overflow-hidden">
-                <div class="absolute -right-4 -top-4 opacity-10"><i data-lucide="sparkles" class="w-24 h-24"></i></div>
-                <h3 class="text-[11px] font-black uppercase mb-4 tracking-widest flex items-center gap-2 text-white/90"><i data-lucide="fingerprint" class="w-4 h-4"></i> Vận mệnh ngày sinh</h3>
-                <div class="grid grid-cols-3 gap-3 mb-4">
-                    <select class="bg-black/20 border border-white/10 rounded-xl p-3.5 text-xs text-white"><template x-for="d in 31"><option :value="d" x-text="d"></option></template></select>
-                    <select class="bg-black/20 border border-white/10 rounded-xl p-3.5 text-xs text-white"><template x-for="m in 12"><option :value="m" x-text="'Tháng '+m"></option></template></select>
-                    <select class="bg-black/20 border border-white/10 rounded-xl p-3.5 text-xs text-white"><option value="2026">2026</option></select>
+        <div class="mb-8">
+            <div class="bg-indigo-600 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
+                <div class="absolute -right-6 -top-6 opacity-20 group-hover:scale-110 transition-transform duration-500"><i data-lucide="sparkles" class="w-32 h-32"></i></div>
+                <h3 class="text-[12px] font-black uppercase mb-6 tracking-widest flex items-center gap-3 text-white">
+                    <i data-lucide="fingerprint" class="w-5 h-5"></i> Vận mệnh ngày sinh
+                </h3>
+                <div class="grid grid-cols-3 gap-3 mb-6">
+                    <select class="bg-black/20 border border-white/10 rounded-2xl p-4 text-xs text-white outline-none focus:border-white/30"><template x-for="d in 31"><option :value="d" x-text="d"></option></template></select>
+                    <select class="bg-black/20 border border-white/10 rounded-2xl p-4 text-xs text-white outline-none focus:border-white/30"><template x-for="m in 12"><option :value="m" x-text="'Th. '+m"></option></template></select>
+                    <select class="bg-black/20 border border-white/10 rounded-2xl p-4 text-xs text-white outline-none focus:border-white/30"><option value="2026">2026</option></select>
                 </div>
-                <button @click="runAI(false, true)" class="w-full bg-white text-indigo-700 h-14 rounded-2xl font-black text-[10px] uppercase shadow-xl active:scale-95 transition-all">Tạo số may mắn</button>
+                <button @click="runAI(false, true)" class="w-full bg-white text-indigo-700 h-16 rounded-2xl font-black text-[11px] uppercase shadow-xl active:scale-95 transition-all">Tạo số may mắn</button>
             </div>
         </div>
     </main>
 
-    <nav class="flex-none bg-slate-900 border-t border-white/5 px-8 py-4 pb-8 flex justify-between items-center">
-        <div class="text-red-500 flex flex-col items-center gap-1.5"><i data-lucide="home" class="w-5 h-5"></i><span class="text-[8px] font-black uppercase">Home</span></div>
-        <div class="text-white/20 flex flex-col items-center gap-1.5"><i data-lucide="calendar" class="w-5 h-5"></i><span class="text-[8px] font-black uppercase">Lịch sử</span></div>
-        <div class="text-white/20 flex flex-col items-center gap-1.5"><i data-lucide="activity" class="w-5 h-5"></i><span class="text-[8px] font-black uppercase">Thống kê</span></div>
-        <div class="text-white/20 flex flex-col items-center gap-1.5"><i data-lucide="shield-check" class="w-5 h-5"></i><span class="text-[8px] font-black uppercase">Bảo mật</span></div>
+    <nav class="flex-none bg-slate-900/90 backdrop-blur-md border-t border-white/5 px-10 py-4 pb-8 flex justify-between items-center z-50">
+        <div class="text-red-500 flex flex-col items-center gap-1.5"><i data-lucide="home" class="w-6 h-6"></i><span class="text-[9px] font-black uppercase tracking-tighter">Trang chủ</span></div>
+        <div class="text-white/20 flex flex-col items-center gap-1.5"><i data-lucide="history" class="w-6 h-6"></i><span class="text-[9px] font-black uppercase tracking-tighter">Lịch sử</span></div>
+        <div class="text-white/20 flex flex-col items-center gap-1.5"><i data-lucide="bar-chart-3" class="w-6 h-6"></i><span class="text-[9px] font-black uppercase tracking-tighter">Thống kê</span></div>
+        <div class="text-white/20 flex flex-col items-center gap-1.5"><i data-lucide="user" class="w-6 h-6"></i><span class="text-[9px] font-black uppercase tracking-tighter">Cá nhân</span></div>
     </nav>
+
+    <audio id="sfx-click" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
+    <audio id="sfx-win" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3"></audio>
 
     <script>
         function app() {
             return {
-                activeGame: 'mega645', loading: false, results: [], jackpotRate: 46, formattedJackpot: '0.000 Tỷ Đ', currentKy: '01487', currentDayStr: '22/03/2026',
+                activeGame: 'mega645', loading: false, results: [], jackpotRate: 46, 
+                formattedJackpot: '31.336 Tỷ Đ', currentKy: '01487', currentDayStr: '22/03/2026',
                 
                 allGames: [
-                    { id: 'mega645', name: 'Mega 6/45', max: 45, count: 6, schedule: ['T4','T6','CN'], type: 'ball', base: 31.336 },
-                    { id: 'power655', name: 'Power 6/55', max: 55, count: 7, schedule: ['T3','T5','T7'], type: 'ball', base: 49.486 },
-                    { id: 'lotto535', name: 'Lotto 5/35', max: 35, count: 5, schedule: ['T2','T3','T4','T5','T6','T7','CN'], type: 'ball', base: 7.072 },
-                    { id: 'max3d', name: 'Max 3D', max: 9, count: 3, schedule: ['T2','T4','T6'], type: '3d', base: 0.001 },
-                    { id: 'max3dpro', name: 'Max 3D Pro', max: 9, count: 6, schedule: ['T3','T5','T7'], type: '3d', base: 0.001 },
-                    { id: 'keno', name: 'Keno', max: 80, count: 10, schedule: ['T2','T3','T4','T5','T6','T7','CN'], type: 'ball', base: 2.000 },
-                    { id: 'bingo18', name: 'Bingo 18', max: 6, count: 3, schedule: ['T2','T3','T4','T5','T6','T7','CN'], type: 'ball', base: 0.500 }
+                    { id: 'mega645', name: 'Mega 6/45', max: 45, count: 6, schedule: ['T4','T6','CN'], base: 31.336, ky: '01487' },
+                    { id: 'power655', name: 'Power 6/55', max: 55, count: 7, schedule: ['T3','T5','T7'], base: 49.486, ky: '01323' },
+                    { id: 'lotto535', name: 'Lotto 5/35', max: 35, count: 5, schedule: ['T2','T3','T4','T5','T6','T7','CN'], base: 7.162, ky: '00535' },
+                    { id: 'max3dpro', name: 'Max 3D Pro', max: 9, count: 6, schedule: ['T3','T5','T7'], base: 2.000, ky: '01057' },
+                    { id: 'keno', name: 'Keno', max: 80, count: 10, schedule: ['T2','T3','T4','T5','T6','T7','CN'], base: 2.000, ky: '01584' }
                 ],
 
-                startApp() { 
+                initApp() { 
                     lucide.createIcons(); 
                     this.updateStats();
-                    setInterval(() => this.realtimeUpdate(), 3000);
-                },
-
-                realtimeUpdate() {
-                    // Cập nhật Meter mượt mà không bị kẹt
-                    let drift = (Math.random() * 0.8) - 0.3;
-                    this.jackpotRate = Math.min(98, Math.max(15, this.jackpotRate + drift));
-                    
-                    // Nhảy số tiền lẻ real-time
-                    let currentVal = parseFloat(this.formattedJackpot);
-                    currentVal += 0.00014;
-                    this.formattedJackpot = currentVal.toFixed(3) + " Tỷ Đ";
+                    // Tự động cập nhật tiền lẻ để tạo cảm giác live
+                    setInterval(() => {
+                        let currentVal = parseFloat(this.formattedJackpot);
+                        this.formattedJackpot = (currentVal + 0.000012).toFixed(3) + " Tỷ Đ";
+                    }, 4000);
                 },
 
                 currentG() { return this.allGames.find(g => g.id === this.activeGame); },
@@ -177,18 +183,18 @@
                     this.activeGame = id; 
                     this.results = []; 
                     this.updateStats(); 
+                    this.playSFX('sfx-click');
                 },
                 
                 updateStats() {
                     const game = this.currentG();
-                    // Fix ngày quay theo dữ liệu thực tế
-                    const today = new Date();
-                    this.currentDayStr = today.toLocaleDateString('vi-VN');
-                    this.currentKy = game.id === 'mega645' ? '01487' : '01323';
-                    
-                    // Reset jackpot về mức base chính xác từ ảnh
-                    this.formattedJackpot = (game.base + Math.random() * 0.05).toFixed(3) + " Tỷ Đ";
-                    this.jackpotRate = Math.floor(Math.random() * 20) + 35;
+                    const now = new Date();
+                    // Fix lỗi hiển thị ngày: Luôn hiển thị ngày quay thưởng gần nhất/hiện tại
+                    this.currentDayStr = now.toLocaleDateString('vi-VN');
+                    this.currentKy = game.ky;
+                    this.formattedJackpot = game.base.toFixed(3) + " Tỷ Đ";
+                    // Tỉ lệ jackpot dao động thực tế theo dữ liệu
+                    this.jackpotRate = game.id === 'mega645' ? 46 : (game.id === 'power655' ? 31 : 15);
                 },
 
                 getBallColor(idx) {
@@ -198,14 +204,19 @@
                     return 'bg-blue';
                 },
 
+                playSFX(id) {
+                    const audio = document.getElementById(id);
+                    if (audio) { audio.currentTime = 0; audio.play().catch(()=>{}); }
+                },
+
                 runAI(isJackpot, isBirthday = false) {
                     this.loading = true;
                     const g = this.currentG();
-                    if (window.navigator.vibrate) window.navigator.vibrate(15);
+                    if (window.navigator.vibrate) window.navigator.vibrate(20);
                     
                     setTimeout(() => {
                         let final = [];
-                        if (g.type === '3d') {
+                        if (g.id === 'max3dpro') {
                             for(let i=0; i<g.count; i++) final.push(Math.floor(Math.random() * 10));
                         } else {
                             let s = new Set();
@@ -214,15 +225,14 @@
                         }
                         this.results = final;
                         this.loading = false;
-                        
-                        // Cập nhật meter lên mức cao khi tìm được bộ số
-                        this.jackpotRate = Math.floor(Math.random() * 15) + 82;
+                        this.playSFX('sfx-win');
 
                         if (isJackpot || isBirthday) {
-                            confetti({ particleCount: 120, spread: 60, origin: { y: 0.8 }, colors: ['#ef4444', '#f59e0b', '#ffffff'] });
+                            confetti({ particleCount: 150, spread: 70, origin: { y: 0.7 }, colors: ['#ef4444', '#f59e0b', '#6366f1'] });
                             if (window.navigator.vibrate) window.navigator.vibrate([50, 30, 50]);
+                            this.jackpotRate = Math.min(99, this.jackpotRate + 15);
                         }
-                    }, 1200);
+                    }, 1500);
                 }
             }
         }
