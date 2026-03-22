@@ -3,21 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Vietlott Pro All-in-One</title>
+    <title>Vietlott AI Pro - All-in-One</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.0/umd/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;700;900&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+
     <style>
         [x-cloak] { display: none !important; }
-        html, body { height: 100%; overflow: hidden; position: fixed; width: 100%; font-family: sans-serif; background: #0f172a; color: #f8fafc; }
-        main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 40px; }
+        html, body { height: 100%; overflow: hidden; position: fixed; width: 100%; font-family: 'Lexend', sans-serif; background: #0f172a; color: #f8fafc; }
+        main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 60px; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
         .led-active { width: 10px; height: 10px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 10px #22c55e; animation: blink 1.2s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
+        /* Ball Styling */
         .ball {
             display: inline-flex; align-items: center; justify-content: center;
             width: 38px; height: 38px; border-radius: 50%; font-weight: 800;
@@ -28,8 +31,17 @@
         .bg-special { background: radial-gradient(circle at 30% 30%, #ffd700, #b8860b); color: #000; border: 2px solid #ef4444; }
         .bg-blue { background: radial-gradient(circle at 30% 30%, #4facfe, #00f2fe); }
 
+        /* Dashboard Jackpot & Fonts */
         .jackpot-card { background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); border: 1px solid rgba(255,255,255,0.1); }
-        .text-gold { background: linear-gradient(to bottom, #fff5b1, #ffd700, #ff9500); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
+        .text-gold { 
+            background: linear-gradient(to bottom, #fff5b1, #ffd700, #ff9500); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+            font-family: 'Space Grotesk', sans-serif; font-weight: 900;
+            letter-spacing: -0.05em;
+        }
+        .text-ky-quay { font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.1em; }
+        
+        .meter-fill { transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
     </style>
 </head>
 <body class="flex flex-col" x-init="startApp()">
@@ -58,20 +70,23 @@
         <div class="mb-4">
             <div class="jackpot-card rounded-[2rem] p-5 relative overflow-hidden">
                 <div class="flex justify-between items-center mb-1">
-                    <span class="text-[10px] font-black uppercase text-white/30 tracking-widest" x-text="'Jackpot ' + currentG().name"></span>
-                    <span class="text-[11px] font-black text-red-500" x-text="jackpotRate + '% 🚨'"></span>
+                    <span class="text-[9px] font-black uppercase text-white/30 tracking-[0.2em]" x-text="'Jackpot ' + currentG().name"></span>
+                    <div class="flex items-center gap-1">
+                        <span class="text-xs font-black text-red-500" x-text="Math.round(jackpotRate) + '%'"></span>
+                        <span class="animate-pulse">🚨</span>
+                    </div>
                 </div>
-                <div class="text-3xl text-gold mb-1" x-text="formattedJackpot"></div>
-                <div class="text-[9px] text-white/30 font-mono" x-text="'Kỳ #'+currentKy+' • 22/03/2026'"></div>
+                <div class="text-4xl text-gold mb-1" x-text="formattedJackpot"></div>
+                <div class="text-[10px] text-white/40 text-ky-quay font-bold uppercase" x-text="'Kỳ #'+currentKy+' • 22/03/2026'"></div>
                 
-                <div class="mt-3 h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                    <div class="h-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-600 transition-all duration-1000" :style="'width: '+jackpotRate+'%'"></div>
+                <div class="mt-4 h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-600 meter-fill" :style="'width: '+jackpotRate+'%'"></div>
                 </div>
 
                 <div class="flex gap-1 mt-4">
                     <template x-for="day in ['T2','T3','T4','T5','T6','T7','CN']">
                         <div :class="currentG().schedule.includes(day) ? 'bg-red-600 text-white font-black' : 'text-white/10'"
-                             class="flex-1 text-[8px] py-1 rounded-md text-center border border-white/5" x-text="day"></div>
+                             class="flex-1 text-[8px] py-1.5 rounded-md text-center border border-white/5" x-text="day"></div>
                     </template>
                 </div>
             </div>
@@ -79,7 +94,7 @@
 
         <div class="mb-4">
             <div class="bg-slate-800/40 rounded-[2.5rem] p-6 border border-white/5 text-center shadow-xl">
-                <div class="text-[10px] font-black uppercase text-white/40 mb-4 tracking-widest">Xác suất nổ: <span class="text-red-500" x-text="currentG().name"></span></div>
+                <div class="text-[10px] font-black uppercase text-white/40 mb-4 tracking-widest">Phân tích thuật toán: <span class="text-red-500" x-text="currentG().name"></span></div>
                 
                 <div class="flex flex-wrap justify-center min-h-[60px] items-center mb-6">
                     <template x-if="loading">
@@ -95,8 +110,8 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
-                    <button @click="runAI(false)" class="bg-orange-600 h-12 rounded-2xl font-black uppercase text-[10px] text-white shadow-lg shadow-orange-600/20">Phân Tích AI</button>
-                    <button @click="runAI(true)" class="bg-yellow-600 h-12 rounded-2xl font-black uppercase text-[10px] text-white opacity-90 shadow-lg shadow-yellow-600/20">Soi Jackpot</button>
+                    <button @click="runAI(false)" class="bg-orange-600 h-12 rounded-2xl font-black uppercase text-[10px] text-white shadow-lg active:scale-95 transition-all">Phân Tích AI</button>
+                    <button @click="runAI(true)" class="bg-yellow-600 h-12 rounded-2xl font-black uppercase text-[10px] text-white opacity-90 shadow-lg active:scale-95 transition-all">Soi Jackpot</button>
                 </div>
             </div>
         </div>
@@ -105,20 +120,20 @@
             <div class="bg-indigo-600 p-6 rounded-[2.5rem] shadow-xl">
                 <h3 class="text-[11px] font-black uppercase mb-4 tracking-widest flex items-center gap-2"><i data-lucide="sparkles" class="w-4 h-4"></i> Vận mệnh ngày sinh</h3>
                 <div class="grid grid-cols-3 gap-2 mb-4">
-                    <select class="bg-black/20 border border-white/10 rounded-xl p-3 text-xs outline-none"><template x-for="d in 31"><option :value="d" x-text="d"></option></template></select>
-                    <select class="bg-black/20 border border-white/10 rounded-xl p-3 text-xs outline-none"><template x-for="m in 12"><option :value="m" x-text="'Tháng '+m"></option></template></select>
-                    <select class="bg-black/20 border border-white/10 rounded-xl p-3 text-xs outline-none"><option value="2026">2026</option></select>
+                    <select class="bg-black/20 border border-white/10 rounded-xl p-3 text-xs outline-none text-white"><template x-for="d in 31"><option :value="d" x-text="d"></option></template></select>
+                    <select class="bg-black/20 border border-white/10 rounded-xl p-3 text-xs outline-none text-white"><template x-for="m in 12"><option :value="m" x-text="'Tháng '+m"></option></template></select>
+                    <select class="bg-black/20 border border-white/10 rounded-xl p-3 text-xs outline-none text-white"><option value="2026">2026</option></select>
                 </div>
-                <button @click="runAI(false, true)" class="w-full bg-white text-indigo-700 h-12 rounded-2xl font-black text-[10px] uppercase shadow-md">Tạo số may mắn</button>
+                <button @click="runAI(false, true)" class="w-full bg-white text-indigo-700 h-12 rounded-2xl font-black text-[10px] uppercase shadow-md active:scale-95 transition-all">Tạo số may mắn</button>
             </div>
         </div>
     </main>
 
     <nav class="flex-none bg-slate-900 border-t border-white/5 px-8 py-4 pb-8 flex justify-between items-center">
-        <div class="text-red-500 flex flex-col items-center gap-1"><i data-lucide="home" class="w-5 h-5"></i><span class="text-[8px] font-black uppercase">Home</span></div>
-        <div class="text-white/20 flex flex-col items-center gap-1"><i data-lucide="history" class="w-5 h-5"></i><span class="text-[8px] font-black uppercase">Lịch sử</span></div>
-        <div class="text-white/20 flex flex-col items-center gap-1"><i data-lucide="bar-chart-2" class="w-5 h-5"></i><span class="text-[8px] font-black uppercase">Thống kê</span></div>
-        <div class="text-white/20 flex flex-col items-center gap-1"><i data-lucide="user" class="w-5 h-5"></i><span class="text-[8px] font-black uppercase">Me</span></div>
+        <div class="text-red-500 flex flex-col items-center gap-1"><i data-lucide="home" class="w-5 h-5"></i><span class="text-[8px] font-black uppercase tracking-widest">Home</span></div>
+        <div class="text-white/20 flex flex-col items-center gap-1"><i data-lucide="history" class="w-5 h-5"></i><span class="text-[8px] font-black uppercase tracking-widest">Lịch sử</span></div>
+        <div class="text-white/20 flex flex-col items-center gap-1"><i data-lucide="bar-chart-2" class="w-5 h-5"></i><span class="text-[8px] font-black uppercase tracking-widest">Thống kê</span></div>
+        <div class="text-white/20 flex flex-col items-center gap-1"><i data-lucide="user" class="w-5 h-5"></i><span class="text-[8px] font-black uppercase tracking-widest">Profile</span></div>
     </nav>
 
     <script>
@@ -137,15 +152,34 @@
                     { id: 'bingo18', name: 'Bingo 18', max: 6, count: 3, schedule: ['T2','T3','T4','T5','T6','T7','CN'], type: 'ball' }
                 ],
 
-                startApp() { lucide.createIcons(); this.updateStats(); },
+                startApp() { 
+                    lucide.createIcons(); 
+                    this.updateStats();
+                    // Khởi chạy loop Real-time cho Meter
+                    this.realtimeLoop();
+                },
+
+                realtimeLoop() {
+                    setInterval(() => {
+                        // Nhích nhẹ tỷ lệ % để tạo hiệu ứng Real-time (không bị kẹt)
+                        let change = (Math.random() * 0.4) - 0.2;
+                        this.jackpotRate = Math.min(99, Math.max(10, this.jackpotRate + change));
+                        
+                        // Tăng nhẹ số tiền thưởng theo thời gian
+                        let jackpotVal = parseFloat(this.formattedJackpot);
+                        jackpotVal += 0.0001;
+                        this.formattedJackpot = jackpotVal.toFixed(3) + " Tỷ Đ";
+                    }, 2000);
+                },
+
                 currentG() { return this.allGames.find(g => g.id === this.activeGame); },
                 selectGame(id) { this.activeGame = id; this.results = []; this.updateStats(); },
                 
                 updateStats() {
                     const game = this.currentG();
-                    let base = game.id === 'power655' ? 150.234 : 27.617;
+                    let base = game.id === 'power655' ? 128.542 : (game.id === 'mega645' ? 27.617 : 12.000);
                     this.formattedJackpot = (base + Math.random()).toFixed(3) + " Tỷ Đ";
-                    this.jackpotRate = Math.floor(Math.random() * 50) + 30;
+                    this.jackpotRate = Math.floor(Math.random() * 30) + 40;
                 },
 
                 getBallColor(idx) {
@@ -158,6 +192,8 @@
                 runAI(isJackpot, isBirthday = false) {
                     this.loading = true;
                     const g = this.currentG();
+                    if (window.navigator.vibrate) window.navigator.vibrate(20);
+                    
                     setTimeout(() => {
                         let final = [];
                         if (g.type === '3d') {
